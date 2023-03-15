@@ -83,12 +83,14 @@ Disable all diagnostic styles:
 
 <details>
   <summary>--snippet--</summary>
+
 ```lua
 config = function ()
     require("lsp_extra_dim").setup({
         disable_diagnostic_style = "all"
     })
 ```
+
 </details>
 
 Do not disable any diagnostic styles:
@@ -97,12 +99,14 @@ Do not disable any diagnostic styles:
 
 <details>
   <summary>--snippet--</summary>
+
 ```lua
 config = function ()
     require("lsp_extra_dim").setup({
         disable_diagnostic_style = {}
     })
 ```
+
 </details>
 
 Disable diagnostic style for function arguments only:
@@ -111,10 +115,12 @@ Disable diagnostic style for function arguments only:
 
 <details>
   <summary>--snippet--</summary>
+
 ```lua
 require("lsp_extra_dim").setup({
     disable_diagnostic_style = {
         "parameter"
     }
 ```
+
 </details>
