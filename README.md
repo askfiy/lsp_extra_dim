@@ -117,10 +117,13 @@ Disable diagnostic style for function arguments only:
   <summary>--snippet--</summary>
 
 ```lua
-require("lsp_extra_dim").setup({
-    disable_diagnostic_style = {
-        "parameter"
-    }
+
+config = function ()
+    require("lsp_extra_dim").setup({
+        disable_diagnostic_style = {
+            "parameter"
+        }
+    })
 ```
 
 </details>
