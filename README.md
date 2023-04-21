@@ -127,3 +127,17 @@ config = function ()
 ```
 
 </details>
+
+Disable diagnostics for a line of code, add comment `ignore-diagnostic`:
+
+```go
+package main
+
+import (
+    "fmt"
+)
+
+func main() {
+    error_statement // ignore-diagnostic
+}
+```

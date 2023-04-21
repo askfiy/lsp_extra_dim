@@ -73,6 +73,13 @@ local function filter_is_used_diagnostic(diagnostics)
     local is_empty = is_list and #conf.disable_diagnostic_style == 0
 
     diagnostics = vim.tbl_filter(function(diagnostic)
+        local line_content =
+            vim.api.nvim_buf_get_lines(diagnostic.bufnr, diagnostic.lnum, diagnostic.end_lnum + 1, true)
+
+        if #line_content > 0 and line_content[1]:find(".*ignore%-diagnostic.*") then
+            return false
+        end
+
         if is_all then
             return is_used(diagnostic)
         end
@@ -147,13 +154,7 @@ local function refresh(bufnr)
     local marks = vim.api.nvim_buf_get_extmarks(0, mark_namespace, 0, -1, {})
 
     for _, mark in ipairs(marks) do
-        local diagnostics = filter_no_used_diagnostics(vim.diagnostic.get(bufnr, {
-            lnum = mark[2],
-        }))
-
         vim.api.nvim_buf_clear_namespace(bufnr, mark_namespace, mark[2], mark[2] + 1)
-
-        create_extmark_from_diagnostics(diagnostics)
     end
 end
 
