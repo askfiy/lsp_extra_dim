@@ -1,15 +1,9 @@
 return {
-    -- default foreground color ( str | func)
-    color = "#999999",
     hooks = {
         diagnostics_filter = {
             -- after the default filter function runs, the following hook function will be executed
             lsp_filter = function(diagnostics)
                 -- get all used diagnostics
-                return diagnostics
-            end,
-            mark_filter = function(diagnostics)
-                -- get all unused diagnostics
                 return diagnostics
             end,
         },
