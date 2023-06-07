@@ -29,18 +29,12 @@ The configurations that can be passed in setup are:
 
 ```lua
 return {
-    -- default foreground color ( str | func)
-    color = "#999999",
     hooks = {
         -- see: README/CONCEPT
         diagnostics_filter = {
             -- after the default filter function runs, the following hook function will be executed
             lsp_filter = function(diagnostics)
                 -- get all used diagnostics
-                return diagnostics
-            end,
-            mark_filter = function(diagnostics)
-                -- get all unused diagnostics
                 return diagnostics
             end,
         },
@@ -59,21 +53,19 @@ return {
 
 ## CONCEPT
 
-This plugin actually does 2 things:
+This is a plugin to disable unused extra style in LSP, The implementation method is very simple:
 
-- 1. Remove all `unused` diagnostic information in `diagnostics`
-- 2. Use `extmark` to render all `unused` diagnostic text
+- 1. Customize the diagnostic.show method
+- 2. Filter all diagnostics and clear all unused diagnostics
+- 3. Create a mark and put it in a specific namespace (clear the namespace when diagnostics is triggered again)
 
-So, he has 2 filtering steps:
+So, he has 1 filtering steps:
 
 - 1. Screening on `lsp diagnostic` level
-- 2. Screening on `extmark` level
 
 Filtering at `lsp diagnostic` level will remove all diagnostics containing `unused` (but some diagnostics that qualify in `disable_diagnostic_style` will be kept)
 
-Filtering at `extmark` will roughly filter out all `unused` diagnostics and add color to them.
-
-In the configuration of `setup`, `diagnostics_filter.lsp_filter` and `diagnostics_filter.mark_filter` are the hook functions defined after the default filter function runs.
+In the configuration of `setup`, `diagnostics_filter.lsp_filter`  are the hook functions defined after the default filter function runs.
 
 ## CASE
 
@@ -127,17 +119,3 @@ config = function ()
 ```
 
 </details>
-
-Disable diagnostics for a line of code, add comment `ignore-diagnostic`:
-
-```go
-package main
-
-import (
-    "fmt"
-)
-
-func main() {
-    error_statement // ignore-diagnostic
-}
-```

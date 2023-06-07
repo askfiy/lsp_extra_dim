@@ -1,20 +1,31 @@
 -- author: askfiy
 -- date: 2023-03-14
 
+-- *******************************************************************************************
+-- This is a plugin to disable unused extra style in LSP
+-- The implementation method is very simple:
+--   1. Customize the diagnostic.show method
+--   2. Filter all diagnostics and clear all unused diagnostics
+--   3. Create a mark and put it in a specific namespace (clear the namespace when diagnostics is triggered again)
+-- *******************************************************************************************
+
 ---@diagnostic disable-next-line: unused-local
 local debug = require("lsp_extra_dim.debug")
 local default_conf = require("lsp_extra_dim.config")
 
 local M = {
     _conf = {},
+    _highlight_name = "DiagnosticUnnecessary",
+    _mark_namespace = vim.api.nvim_create_namespace("lsp_extra_dim"),
 }
-
--- debug.begin()
 
 -- **************************************** CommonFunc ****************************************
 
 local function no_used(diagnostic)
-    local info = diagnostic.tags or vim.tbl_get(diagnostic, "user_data", "lsp", "tags") or diagnostic.code
+    local info = diagnostic.tags
+        or vim.tbl_get(diagnostic, "user_data", "lsp", "tags")
+        or diagnostic.code
+        or diagnostic._tags
 
     if type(info) == "string" then
         -- diagnostic.code = `unused-xxxx`
@@ -23,16 +34,14 @@ local function no_used(diagnostic)
 
     if type(info) == "table" then
         -- info = { 1 }
-        -- unnecessary = 1
+        -- OR
+        -- info = { unnecessary = true }
+        -- vim.lsp.protocol.DiagnosticTag.Unnecessary = 1
         local unnecessary = vim.lsp.protocol.DiagnosticTag.Unnecessary
-        return vim.tbl_contains(info, unnecessary)
+        return vim.tbl_contains(info, unnecessary) or info.unnecessary
     end
 
     return false
-end
-
-local function is_used(diagnostic)
-    return not no_used(diagnostic)
 end
 
 local function get_captures(bufnr, row, col)
@@ -47,11 +56,30 @@ local function get_captures(bufnr, row, col)
     end, nodes)
 end
 
----@diagnostic disable-next-line: unused-local, unused-function
-local function is_capture(captures, capture_name)
-    -- Determine whether the last capture (highest priority) has not captured_name
-    local length = #captures
-    return captures[length] == capture_name
+-- **************************************** Marks ****************************************
+
+local function clear_marks(bufnr)
+    -- Refresh all marks, essentially clean up all the marks in the namespace
+    mark_namespace = M.get_mark_namespace()
+
+    local marks = vim.api.nvim_buf_get_extmarks(0, mark_namespace, 0, -1, {})
+    for _, mark in ipairs(marks) do
+        vim.api.nvim_buf_clear_namespace(bufnr, mark_namespace, mark[2], mark[2] + 1)
+    end
+end
+
+local function create_mark(diagnostic)
+    -- Create a new mark into the namespace
+    mark_namespace = M.get_mark_namespace()
+
+    vim.api.nvim_buf_set_extmark(diagnostic.bufnr, mark_namespace, diagnostic.lnum, diagnostic.col, {
+        end_line = diagnostic.lnum,
+        end_col = diagnostic.end_col,
+        hl_group = M.get_highlight_name(),
+        priority = 200,
+        end_right_gravity = true,
+        strict = false,
+    })
 end
 
 -- **************************************** Diagnostic ****************************************
@@ -65,18 +93,15 @@ local function filter_is_used_diagnostic(diagnostics)
     local is_empty = is_list and #conf.disable_diagnostic_style == 0
 
     diagnostics = vim.tbl_filter(function(diagnostic)
-        local line_content =
-            vim.api.nvim_buf_get_lines(diagnostic.bufnr, diagnostic.lnum, diagnostic.end_lnum + 1, true)
-
-        if #line_content > 0 and line_content[1]:find(".*ignore%-diagnostic.*") then
-            return false
+        if is_empty then
+            return true
         end
 
         if is_all then
-            return is_used(diagnostic)
-        end
-
-        if is_empty then
+            if no_used(diagnostic) then
+                create_mark(diagnostic)
+                return false
+            end
             return true
         end
 
@@ -84,7 +109,11 @@ local function filter_is_used_diagnostic(diagnostics)
             -- Diagnostics already used, or unused but present in disable_diagnostic_style will not be returned
             local captures = get_captures(diagnostic.bufnr, diagnostic.lnum, diagnostic.col)
             ---@diagnostic disable-next-line: param-type-mismatch
-            return not (no_used(diagnostic) and vim.tbl_contains(conf.disable_diagnostic_style, captures[#captures]))
+            if no_used(diagnostic) and vim.tbl_contains(conf.disable_diagnostic_style, captures[#captures]) then
+                create_mark(diagnostic)
+                return false
+            end
+            return true
         end
 
         assert(
@@ -103,6 +132,7 @@ local function create_diagnostic_handler(handler_opts)
 
     return {
         show = function(namespace, bufnr, diagnostics, opts)
+            clear_marks(bufnr)
             diagnostics = filter_is_used_diagnostic(diagnostics)
             show(namespace, bufnr, diagnostics, opts)
         end,
@@ -113,8 +143,6 @@ end
 function M.setup(opts)
     M._conf = vim.tbl_deep_extend("force", default_conf, opts or {})
 
-    -- 1. Disable all diagnostics that meet the conditions, such as those that contain the unused keyword and captures is not in disable_diagnostic_style
-    -- { underline = {show = <function>, hide = <function>}, virtual_text = {...}, signs = {...} }
     for handler_name, handler_opts in pairs(vim.diagnostic.handlers) do
         vim.diagnostic.handlers[handler_name] = create_diagnostic_handler(handler_opts)
     end
@@ -122,6 +150,14 @@ end
 
 function M.get_conf()
     return M._conf
+end
+
+function M.get_mark_namespace()
+    return M._mark_namespace
+end
+
+function M.get_highlight_name()
+    return M._highlight_name
 end
 
 return M
