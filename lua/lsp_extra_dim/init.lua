@@ -129,6 +129,7 @@ end
 local function create_diagnostic_handler(handler_opts)
     local show = handler_opts.show
     local hide = handler_opts.hide
+    local dig_conf = vim.diagnostic.config()
 
     return {
         show = function(namespace, bufnr, diagnostics, opts)
@@ -137,7 +138,14 @@ local function create_diagnostic_handler(handler_opts)
         end,
         hide = function(namespace, bufnr)
             hide(namespace, bufnr)
-            clear_marks(bufnr)
+
+            if not dig_conf.update_in_insert == false then
+                clear_marks(bufnr)
+            else
+                if vim.fn.mode() ~= "i" then
+                    clear_marks(bufnr)
+                end
+            end
         end,
     }
 end
