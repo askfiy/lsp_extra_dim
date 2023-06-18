@@ -123,7 +123,7 @@ local function filter_is_used_diagnostic(diagnostics)
         )
     end, diagnostics)
 
-    return conf.hooks.diagnostics_filter.lsp_filter(diagnostics)
+    return conf.hooks.lsp_filter(diagnostics, create_mark)
 end
 
 local function create_diagnostic_handler(handler_opts)

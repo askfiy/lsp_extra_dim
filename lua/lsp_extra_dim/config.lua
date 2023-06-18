@@ -1,12 +1,10 @@
 return {
     hooks = {
-        diagnostics_filter = {
+        lsp_filter = function(diagnostics, create_mark)
             -- after the default filter function runs, the following hook function will be executed
-            lsp_filter = function(diagnostics)
-                -- get all used diagnostics
-                return diagnostics
-            end,
-        },
+            -- get all used diagnostics
+            return diagnostics
+        end,
     },
 
     -- disable diagnostic styling while dimming the colors?

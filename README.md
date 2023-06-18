@@ -31,13 +31,11 @@ The configurations that can be passed in setup are:
 return {
     hooks = {
         -- see: README/CONCEPT
-        diagnostics_filter = {
-            -- after the default filter function runs, the following hook function will be executed
-            lsp_filter = function(diagnostics)
-                -- get all used diagnostics
-                return diagnostics
-            end,
-        },
+        -- after the default filter function runs, the following hook function will be executed
+        lsp_filter = function(diagnostics, create_mark)
+            -- get all used diagnostics
+            return diagnostics
+        end,
     },
 
     -- disable diagnostic styling while dimming the colors?
@@ -57,7 +55,7 @@ This is a plugin to disable unused extra style in LSP, The implementation method
 
 - 1. Customize the diagnostic.show method
 - 2. Filter all diagnostics and clear all unused diagnostics
-- 3. Create a mark and put it in a specific namespace (clear the namespace when diagnostics is triggered again)
+- 3. Create a mark and put it in a specific namespace (clear the namespace when diagnostics is hidden)
 
 So, he has 1 filtering steps:
 
@@ -65,7 +63,7 @@ So, he has 1 filtering steps:
 
 Filtering at `lsp diagnostic` level will remove all diagnostics containing `unused` (but some diagnostics that qualify in `disable_diagnostic_style` will be kept)
 
-In the configuration of `setup`, `diagnostics_filter.lsp_filter`  are the hook functions defined after the default filter function runs.
+In the configuration of `setup`, `lsp_filter` are the hook functions defined after the default filter function runs.
 
 ## CASE
 
