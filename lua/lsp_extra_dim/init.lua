@@ -132,11 +132,13 @@ local function create_diagnostic_handler(handler_opts)
 
     return {
         show = function(namespace, bufnr, diagnostics, opts)
-            clear_marks(bufnr)
             diagnostics = filter_is_used_diagnostic(diagnostics)
             show(namespace, bufnr, diagnostics, opts)
         end,
-        hide = hide,
+        hide = function(namespace, bufnr)
+            hide(namespace, bufnr)
+            clear_marks(bufnr)
+        end,
     }
 end
 
