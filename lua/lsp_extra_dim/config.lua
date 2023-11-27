@@ -1,6 +1,6 @@
 return {
     hooks = {
-        lsp_filter = function(diagnostics, create_mark)
+        lsp_filter = function(diagnostics)
             -- after the default filter function runs, the following hook function will be executed
             -- get all used diagnostics
             return diagnostics

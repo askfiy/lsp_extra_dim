@@ -2,7 +2,6 @@
 
 ## INTRODUCTION
 
-
 `lsp_extra_dim` is a `neovim` plugin written 100% in `lua`. Aims to provide dimmed styles for some unused `variables`, `functions`, `parameters` and disable `Lsp Diagnostic Style`
 
 ![example](./screen/example.png)
@@ -32,7 +31,7 @@ return {
     hooks = {
         -- see: README/CONCEPT
         -- after the default filter function runs, the following hook function will be executed
-        lsp_filter = function(diagnostics, create_mark)
+        lsp_filter = function(diagnostics)
             -- get all used diagnostics
             return diagnostics
         end,
@@ -51,11 +50,11 @@ return {
 
 ## CONCEPT
 
-This is a plugin to disable unused extra style in LSP, The implementation method is very simple:
+This is a plugin to disable unused extra style in LSP The implementation method is very simple:
 
-- 1. Customize the diagnostic.show method
-- 2. Filter all diagnostics and clear all unused diagnostics
-- 3. Create a mark and put it in a specific namespace (clear the namespace when diagnostics is hidden)
+- 1. Customize the vim.diagnostic.handlers[signs&#124;virtual_text].show method
+- 2. Override the show method of handlers other than underline, Filtering out unused resources
+- 3. Underline's show method will still dim them, but other handler's show methods will disable hints such as dummy text
 
 So, he has 1 filtering steps:
 
@@ -69,7 +68,7 @@ In the configuration of `setup`, `lsp_filter` are the hook functions defined aft
 
 Disable all diagnostic styles:
 
-![all](./screen/all.png) 
+![all](./screen/all.png)
 
 <details>
   <summary>--snippet--</summary>
@@ -85,7 +84,7 @@ config = function ()
 
 Do not disable any diagnostic styles:
 
-![empty](./screen/empty.png) 
+![empty](./screen/empty.png)
 
 <details>
   <summary>--snippet--</summary>
@@ -101,7 +100,7 @@ config = function ()
 
 Disable diagnostic style for function arguments only:
 
-![params](./screen/params.png) 
+![params](./screen/params.png)
 
 <details>
   <summary>--snippet--</summary>
