@@ -45,6 +45,15 @@ return {
     --------------------------------------
     -- see `https://github.com/nvim-treesitter/nvim-treesitter/blob/master/CONTRIBUTING.md`
     disable_diagnostic_style = "all",
+    -- customize different files for different file types disable_diagnostic_style
+    filetype_options = {
+        -- python = {
+        --     disable_diagnostic_style = {
+        --         "parameter",
+        --         "type"
+        --     }
+        -- }
+    },
 }
 ```
 

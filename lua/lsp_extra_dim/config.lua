@@ -15,4 +15,5 @@ return {
     --------------------------------------
     -- see `https://github.com/nvim-treesitter/nvim-treesitter/blob/master/CONTRIBUTING.md`
     disable_diagnostic_style = "all",
+    filetype_options = {},
 }

@@ -58,11 +58,19 @@ end
 
 local function filter_is_used_diagnostic(diagnostics)
     local conf = M.get_conf()
+    local filetype = vim.opt_local.filetype:get()
+    local disable_diagnostic_style = conf.disable_diagnostic_style
 
-    local is_all = conf.disable_diagnostic_style == "all"
+    if conf.filetype_options[filetype] then
+        ---@diagnostic disable-next-line: cast-local-type
+        disable_diagnostic_style =
+            conf.filetype_options[filetype].disable_diagnostic_style
+    end
+
+    local is_all = disable_diagnostic_style == "all"
     ---@diagnostic disable-next-line: param-type-mismatch
-    local is_list = vim.tbl_islist(conf.disable_diagnostic_style)
-    local is_empty = is_list and #conf.disable_diagnostic_style == 0
+    local is_list = vim.tbl_islist(disable_diagnostic_style)
+    local is_empty = is_list and #disable_diagnostic_style == 0
 
     if is_empty then
         return diagnostics
@@ -73,22 +81,22 @@ local function filter_is_used_diagnostic(diagnostics)
                     return false
                 end
             else
-                -- Diagnostics already used, or unused but present in disable_diagnostic_style will not be returned
-                local captures = get_captures(
-                    diagnostic.bufnr,
-                    diagnostic.lnum,
-                    diagnostic.col
-                )
-                ---@diagnostic disable-next-line: param-type-mismatch
-                if
-                    no_used(diagnostic)
-                    and vim.tbl_contains(
-                        ---@diagnostic disable-next-line: param-type-mismatch
-                        conf.disable_diagnostic_style,
-                        captures[#captures]
+                if no_used(diagnostic) then
+                    -- Diagnostics already used, or unused but present in disable_diagnostic_style will not be returned
+                    local captures = get_captures(
+                        diagnostic.bufnr,
+                        diagnostic.lnum,
+                        diagnostic.col
                     )
-                then
-                    return false
+                    if
+                        vim.tbl_contains(
+                            ---@diagnostic disable-next-line: param-type-mismatch
+                            disable_diagnostic_style,
+                            captures[#captures]
+                        )
+                    then
+                        return false
+                    end
                 end
             end
 
